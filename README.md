@@ -23,7 +23,7 @@ While the end goal of GoMQ is a pure Go implementation of ZeroMQ with no depende
 * [libzmq](https://github.com/zeromq/libzmq)
 * [czmq](https://github.com/zeromq/czmq)
 
-Because we are implementing ZeroMQ socket types that are not yet included in a stable release, we are developing against git master checkouts of libzmq and czmq. These build instructions were tested on Ubuntu 15.10. If someone would like to provide guides for getting started on Windows, that would be great!
+Because we are implementing ZeroMQ socket types that are not yet included in a stable release, we are developing against git master checkouts of libzmq and czmq. These build instructions were tested on Ubuntu 15.10 and Ubuntu 16.04. If someone would like to provide guides for getting started on Windows, that would be great!
 
 ### Linux & OSX
 
@@ -31,12 +31,12 @@ Note: Each of these libraries need you to run `sudo ldconfig` if you are on Linu
 
 *Install libsodium*
 ```
-wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz
-wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz.sig
+wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.9.tar.gz
+wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.9.tar.gz.sig
 wget https://download.libsodium.org/jedi.gpg.asc
 gpg --import jedi.gpg.asc
-gpg --verify libsodium-1.0.8.tar.gz.sig libsodium-1.0.8.tar.gz
-tar zxvf libsodium-1.0.8.tar.gz
+gpg --verify libsodium-1.0.9.tar.gz.sig libsodium-1.0.9.tar.gz
+tar zxvf libsodium-1.0.9.tar.gz
 cd libsodium-1.0.8
 ./configure; make check
 sudo make install
