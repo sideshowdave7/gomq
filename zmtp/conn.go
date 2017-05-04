@@ -33,6 +33,12 @@ const (
 
 	// PushSocketType is a ZMQ_PUSH socket
 	PushSocketType SocketType = "PUSH"
+
+	// DealerSocketType is a ZMQ_DEALER socket
+	DealerSocketType SocketType = "DEALER"
+
+	// RouterSocketType is a ZMQ_ROUTER socket
+	RouterSocketType SocketType = "ROUTER"
 )
 
 // NewConnection accepts an io.ReadWriter and creates a new ZMTP connection
