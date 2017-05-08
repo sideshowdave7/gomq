@@ -6,6 +6,7 @@ package test
 #cgo windows CFLAGS: -Wno-pedantic-ms-format -DLIBCZMQ_EXPORTS -DZMQ_DEFINED_STDINT -DLIBCZMQ_EXPORTS
 
 extern void startExternalServer();
+extern void startExternalRouter();
 */
 import "C"
 import "os"
@@ -19,4 +20,8 @@ func init() {
 // StartExternalServer starts a C service for testing ZMTP compatibility against.
 func StartExternalServer() {
 	C.startExternalServer()
+}
+
+func StartExternalRouter() {
+	C.startExternalRouter()
 }

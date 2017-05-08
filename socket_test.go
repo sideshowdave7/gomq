@@ -80,6 +80,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestExternalServer(t *testing.T) {
+	t.Logf("Testing Server")
 	go test.StartExternalServer()
 
 	client := NewClient(zmtp.NewSecurityNull())
@@ -102,6 +103,35 @@ func TestExternalServer(t *testing.T) {
 	t.Logf("client received: %q", string(msg))
 
 	client.Close()
+}
+
+func TestExternalRouter(t *testing.T) {
+
+	go test.StartExternalRouter()
+
+	dealer := NewDealer(zmtp.NewSecurityNull())
+	err := dealer.Connect("tcp://127.0.0.1:31340")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("Sending HELLO")
+	err = dealer.Send([]byte("HELLO"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg, _ := dealer.Recv()
+	// msg2, _ := dealer.Recv()
+
+	if want, got := 0, bytes.Compare([]byte("WORLD"), msg); want != got {
+		t.Errorf("want %v, got %v", want, got)
+	}
+
+	t.Logf("dealer received: %q", string(msg))
+	// t.Logf("dealer received: %q", string(msg2))
+
+	dealer.Close()
 }
 
 func TestPushPull(t *testing.T) {

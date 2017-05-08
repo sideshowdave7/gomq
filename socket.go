@@ -15,6 +15,7 @@ type Socket struct {
 	asServer      bool
 	conns         map[string]*Connection
 	ids           []string
+	identity      string
 	retryInterval time.Duration
 	lock          *sync.RWMutex
 	mechanism     zmtp.SecurityMechanism
@@ -23,11 +24,12 @@ type Socket struct {
 
 // NewSocket accepts an asServer boolean, zmtp.SocketType and a zmtp.SecurityMechanism
 // and returns a *Socket.
-func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityMechanism) *Socket {
+func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityMechanism, identity string) *Socket {
 	return &Socket{
 		lock:          &sync.RWMutex{},
 		asServer:      asServer,
 		sockType:      sockType,
+		identity:      identity,
 		retryInterval: defaultRetry,
 		mechanism:     mechanism,
 		conns:         make(map[string]*Connection),

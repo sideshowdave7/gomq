@@ -44,7 +44,7 @@ type Client interface {
 // ConnectClient accepts a Client interface and an endpoint
 // in the format <proto>://<address>:<port>. It then attempts
 // to connect to the endpoint and perform a ZMTP handshake.
-func ConnectClient(c Client, endpoint string) error {
+func ConnectClient(c Client, endpoint string, identity string) error {
 	parts := strings.Split(endpoint, "://")
 
 Connect:
@@ -111,4 +111,40 @@ func BindServer(s Server, endpoint string) (net.Addr, error) {
 	s.AddConnection(conn)
 	zmtpConn.Recv(s.RecvChannel())
 	return netConn.LocalAddr(), nil
+}
+
+type Dealer interface {
+	ZeroMQSocket
+	Connect(endpoint string) error
+}
+
+// ConnectDealer accepts a Dealer interface and an endpoint
+// in the format <proto>://<address>:<port>. It then attempts
+// to connect to the endpoint and perform a ZMTP handshake.
+func ConnectDealer(d Dealer, endpoint string) error {
+	parts := strings.Split(endpoint, "://")
+
+Connect:
+	netConn, err := net.Dial(parts[0], parts[1])
+	if err != nil {
+		time.Sleep(d.RetryInterval())
+		goto Connect
+	}
+
+	zmtpConn := zmtp.NewConnection(netConn)
+
+	_, err = zmtpConn.Prepare(d.SecurityMechanism(), d.SocketType(), false, nil)
+
+	if err != nil {
+		return err
+	}
+
+	conn := &Connection{
+		net:  netConn,
+		zmtp: zmtpConn,
+	}
+
+	d.AddConnection(conn)
+	zmtpConn.Recv(d.RecvChannel())
+	return nil
 }

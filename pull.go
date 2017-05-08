@@ -12,7 +12,7 @@ type PullSocket struct {
 // a PullSocket as a gomq.Pull interface.
 func NewPull(mechanism zmtp.SecurityMechanism) Client {
 	return &PullSocket{
-		Socket: NewSocket(false, zmtp.PullSocketType, mechanism),
+		Socket: NewSocket(false, zmtp.PullSocketType, mechanism, nil),
 	}
 }
 

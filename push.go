@@ -16,7 +16,7 @@ type PushSocket struct {
 // a PushSocket as a gomq.Push interface.
 func NewPush(mechanism zmtp.SecurityMechanism) Server {
 	return &PushSocket{
-		Socket: NewSocket(false, zmtp.PushSocketType, mechanism),
+		Socket: NewSocket(false, zmtp.PushSocketType, mechanism, identity),
 	}
 }
 

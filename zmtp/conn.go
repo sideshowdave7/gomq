@@ -21,6 +21,8 @@ type Connection struct {
 // SocketType is a ZMTP socket type
 type SocketType string
 
+type SocketIdentity string
+
 const (
 	// ClientSocketType is a ZMQ_CLIENT socket
 	ClientSocketType SocketType = "CLIENT"
@@ -47,7 +49,7 @@ func NewConnection(rw io.ReadWriter) *Connection {
 }
 
 // Prepare performs a ZMTP handshake over a Connection's readWriter
-func (c *Connection) Prepare(mechanism SecurityMechanism, socketType SocketType, asServer bool, applicationMetadata map[string]string) (map[string]string, error) {
+func (c *Connection) Prepare(mechanism SecurityMechanism, socketType SocketType, socketIdentity SocketIdentity, asServer bool, applicationMetadata map[string]string) (map[string]string, error) {
 	if c.isPrepared {
 		return nil, errors.New("Connection was already prepared")
 	}
@@ -74,7 +76,7 @@ func (c *Connection) Prepare(mechanism SecurityMechanism, socketType SocketType,
 	}
 
 	// Send/recv metadata
-	if err := c.sendMetadata(socketType, applicationMetadata); err != nil {
+	if err := c.sendMetadata(socketType, socketIdentity, applicationMetadata); err != nil {
 		return nil, fmt.Errorf("gomq/zmtp: Got error while sending metadata: %v", err)
 	}
 
@@ -135,7 +137,7 @@ func (c *Connection) recvGreeting(asServer bool) error {
 	return nil
 }
 
-func (c *Connection) sendMetadata(socketType SocketType, applicationMetadata map[string]string) error {
+func (c *Connection) sendMetadata(socketType SocketType, socketIdentity SocketIdentity, applicationMetadata map[string]string) error {
 	buffer := new(bytes.Buffer)
 	var usedKeys map[string]struct{}
 
@@ -153,7 +155,8 @@ func (c *Connection) sendMetadata(socketType SocketType, applicationMetadata map
 		c.writeMetadata(buffer, "x-"+lowerCaseKey, v)
 	}
 
-	c.writeMetadata(buffer, "socket-type", string(socketType))
+	c.writeMetadata(buffer, "Socket-Type", string(socketType))
+	c.writeMetadata(buffer, "Identity", string(socketIdentity))
 
 	return c.SendCommand("READY", buffer.Bytes())
 }

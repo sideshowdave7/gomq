@@ -10,9 +10,9 @@ type DealerSocket struct {
 
 // NewDealer accepts a zmtp.SecurityMechanism and returns
 // a DealerSocket as a gomq.Dealer interface.
-func NewDealer(mechanism zmtp.SecurityMechanism) Dealer {
+func NewDealer(mechanism zmtp.SecurityMechanism, identity string) Dealer {
 	return &DealerSocket{
-		Socket: NewSocket(false, zmtp.DealerSocketType, mechanism),
+		Socket: NewSocket(false, zmtp.DealerSocketType, mechanism, identity),
 	}
 }
 
