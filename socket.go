@@ -22,7 +22,7 @@ type Socket struct {
 	recvChannel   chan *zmtp.Message
 }
 
-// NewSocket accepts an asServer boolean, zmtp.SocketType and a zmtp.SecurityMechanism
+// NewSocket accepts an asServer boolean, zmtp.SocketType, an identity, and a zmtp.SecurityMechanism
 // and returns a *Socket.
 func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityMechanism, identity string) *Socket {
 	return &Socket{
@@ -54,8 +54,7 @@ func (s *Socket) AddConnection(conn *Connection) {
 
 // RemoveConnection accepts the uuid of a connection
 // and removes that gomq.Connection from the socket
-// if it exists. FIXME will bomb if uuid does not
-// exist in map
+// if it exists.
 func (s *Socket) RemoveConnection(uuid string) {
 	s.lock.Lock()
 	for k, v := range s.ids {
@@ -63,8 +62,11 @@ func (s *Socket) RemoveConnection(uuid string) {
 			s.ids = append(s.ids[:k], s.ids[k+1:]...)
 		}
 	}
-	s.conns[uuid].net.Close()
-	delete(s.conns, uuid)
+	if _, ok := s.conns[uuid]; ok {
+		s.conns[uuid].net.Close()
+		delete(s.conns, uuid)
+	}
+
 	s.lock.Unlock()
 }
 
@@ -113,4 +115,11 @@ func (s *Socket) Recv() ([]byte, error) {
 // Send sends a message. FIXME should use a channel.
 func (s *Socket) Send(b []byte) error {
 	return s.conns[s.ids[0]].zmtp.SendFrame(b)
+}
+
+func (s *Socket) SendMultipart(b [][]byte) error {
+	// TODO: Optimize
+	for frame := range b {
+		s.connds[s.ids[0].zmtp.SendFrame(frame)]
+	}
 }

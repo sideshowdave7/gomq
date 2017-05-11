@@ -126,7 +126,8 @@ func (routerSocket) Type() SocketType {
 }
 
 func (routerSocket) IsSocketTypeCompatible(socketType SocketType) bool {
-	return socketType == DealerSocketType
+	return socketType == DealerSocketType ||
+		socketType == RouterSocketType
 }
 
 // IsCommandTypeValid returns if a command is valid for this socket.

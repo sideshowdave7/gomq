@@ -148,3 +148,41 @@ Connect:
 	zmtpConn.Recv(d.RecvChannel())
 	return nil
 }
+
+type Router interface {
+	ZeroMQSocket
+	BindRouter(endpoint string) error
+}
+
+// BindRouter accepts a Router interface and an endpoint
+// in the format <proto>://<address>:<port>. It then attempts
+// to bind to the endpoint.
+func BindRouter(r Router, endpoint string) (net.Addr, error) {
+	var addr net.Addr
+	parts := strings.Split(endpoint, "://")
+
+	ln, err := net.Listen(parts[0], parts[1])
+	if err != nil {
+		return addr, err
+	}
+
+	netConn, err := ln.Accept()
+	if err != nil {
+		return addr, err
+	}
+
+	zmtpConn := zmtp.NewConnection(netConn)
+	_, err = zmtpConn.Prepare(r.SecurityMechanism(), r.SocketType(), true, nil)
+	if err != nil {
+		return netConn.LocalAddr(), err
+	}
+
+	conn := &Connection{
+		net:  netConn,
+		zmtp: zmtpConn,
+	}
+
+	r.AddConnection(conn)
+	zmtpConn.Recv(r.RecvChannel())
+	return netConn.LocalAddr(), nil
+}
