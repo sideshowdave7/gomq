@@ -24,12 +24,15 @@ type Connection struct {
 type ZeroMQSocket interface {
 	Recv() ([]byte, error)
 	Send([]byte) error
+	SendMultipart([][]byte) error
 	RetryInterval() time.Duration
 	SocketType() zmtp.SocketType
+	SocketIdentity() zmtp.SocketIdentity
 	SecurityMechanism() zmtp.SecurityMechanism
 	AddConnection(*Connection)
 	RemoveConnection(string)
 	RecvChannel() chan *zmtp.Message
+	RecvMultipart() ([][]byte, error)
 	Close()
 }
 
@@ -44,7 +47,7 @@ type Client interface {
 // ConnectClient accepts a Client interface and an endpoint
 // in the format <proto>://<address>:<port>. It then attempts
 // to connect to the endpoint and perform a ZMTP handshake.
-func ConnectClient(c Client, endpoint string, identity string) error {
+func ConnectClient(c Client, endpoint string) error {
 	parts := strings.Split(endpoint, "://")
 
 Connect:
@@ -55,7 +58,7 @@ Connect:
 	}
 
 	zmtpConn := zmtp.NewConnection(netConn)
-	_, err = zmtpConn.Prepare(c.SecurityMechanism(), c.SocketType(), false, nil)
+	_, err = zmtpConn.Prepare(c.SecurityMechanism(), c.SocketType(), c.SocketIdentity(), false, nil)
 	if err != nil {
 		return err
 	}
@@ -98,7 +101,7 @@ func BindServer(s Server, endpoint string) (net.Addr, error) {
 	}
 
 	zmtpConn := zmtp.NewConnection(netConn)
-	_, err = zmtpConn.Prepare(s.SecurityMechanism(), s.SocketType(), true, nil)
+	_, err = zmtpConn.Prepare(s.SecurityMechanism(), s.SocketType(), s.SocketIdentity(), true, nil)
 	if err != nil {
 		return netConn.LocalAddr(), err
 	}
@@ -133,7 +136,7 @@ Connect:
 
 	zmtpConn := zmtp.NewConnection(netConn)
 
-	_, err = zmtpConn.Prepare(d.SecurityMechanism(), d.SocketType(), false, nil)
+	_, err = zmtpConn.Prepare(d.SecurityMechanism(), d.SocketType(), d.SocketIdentity(), false, nil)
 
 	if err != nil {
 		return err
@@ -151,7 +154,7 @@ Connect:
 
 type Router interface {
 	ZeroMQSocket
-	BindRouter(endpoint string) error
+	Bind(endpoint string) (net.Addr, error)
 }
 
 // BindRouter accepts a Router interface and an endpoint
@@ -172,7 +175,7 @@ func BindRouter(r Router, endpoint string) (net.Addr, error) {
 	}
 
 	zmtpConn := zmtp.NewConnection(netConn)
-	_, err = zmtpConn.Prepare(r.SecurityMechanism(), r.SocketType(), true, nil)
+	_, err = zmtpConn.Prepare(r.SecurityMechanism(), r.SocketType(), r.SocketIdentity(), true, nil)
 	if err != nil {
 		return netConn.LocalAddr(), err
 	}

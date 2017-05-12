@@ -15,7 +15,7 @@ type Socket struct {
 	asServer      bool
 	conns         map[string]*Connection
 	ids           []string
-	identity      string
+	identity      zmtp.SocketIdentity
 	retryInterval time.Duration
 	lock          *sync.RWMutex
 	mechanism     zmtp.SecurityMechanism
@@ -24,7 +24,7 @@ type Socket struct {
 
 // NewSocket accepts an asServer boolean, zmtp.SocketType, an identity, and a zmtp.SecurityMechanism
 // and returns a *Socket.
-func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityMechanism, identity string) *Socket {
+func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityMechanism, identity zmtp.SocketIdentity) *Socket {
 	return &Socket{
 		lock:          &sync.RWMutex{},
 		asServer:      asServer,
@@ -42,7 +42,7 @@ func NewSocket(asServer bool, sockType zmtp.SocketType, mechanism zmtp.SecurityM
 // It is goroutine safe.
 func (s *Socket) AddConnection(conn *Connection) {
 	s.lock.Lock()
-	uuid, err := newUUID()
+	uuid, err := NewUUID()
 	if err != nil {
 		panic(err)
 	}
@@ -79,6 +79,11 @@ func (s *Socket) RetryInterval() time.Duration {
 // SocketType returns the Socket's zmtp.SocketType.
 func (s *Socket) SocketType() zmtp.SocketType {
 	return s.sockType
+}
+
+// SocketIdentity returns the Socket's zmtp.SocketIdentity
+func (s *Socket) SocketIdentity() zmtp.SocketIdentity {
+	return s.identity
 }
 
 // SecurityMechanism returns the Socket's zmtp.SecurityMechanism.
@@ -118,8 +123,5 @@ func (s *Socket) Send(b []byte) error {
 }
 
 func (s *Socket) SendMultipart(b [][]byte) error {
-	// TODO: Optimize
-	for frame := range b {
-		s.connds[s.ids[0].zmtp.SendFrame(frame)]
-	}
+	return s.conns[s.ids[0]].zmtp.SendMultipart(b)
 }

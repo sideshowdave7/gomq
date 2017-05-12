@@ -109,7 +109,7 @@ func TestExternalRouter(t *testing.T) {
 
 	go test.StartExternalRouter()
 
-	dealer := NewDealer(zmtp.NewSecurityNull())
+	dealer := NewDealer(zmtp.NewSecurityNull(), "test_dealer")
 	err := dealer.Connect("tcp://127.0.0.1:31340")
 	if err != nil {
 		t.Fatal(err)

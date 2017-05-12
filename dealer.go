@@ -12,7 +12,7 @@ type DealerSocket struct {
 // a DealerSocket as a gomq.Dealer interface.
 func NewDealer(mechanism zmtp.SecurityMechanism, identity string) Dealer {
 	return &DealerSocket{
-		Socket: NewSocket(false, zmtp.DealerSocketType, mechanism, identity),
+		Socket: NewSocket(false, zmtp.DealerSocketType, mechanism, zmtp.SocketIdentity(identity)),
 	}
 }
 
