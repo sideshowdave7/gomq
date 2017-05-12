@@ -114,6 +114,14 @@ func (s *Socket) Recv() ([]byte, error) {
 	msg := <-s.recvChannel
 	if msg.MessageType == zmtp.CommandMessage {
 	}
+	return msg.Body[0], msg.Err
+}
+
+func (s *Socket) RecvMultipart() ([][]byte, error) {
+	msg := <-s.recvChannel
+	if msg.MessageType == zmtp.CommandMessage {
+
+	}
 	return msg.Body, msg.Err
 }
 
