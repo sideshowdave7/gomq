@@ -349,8 +349,8 @@ func (c *Connection) send(isCommand bool, body []byte) error {
 	return nil
 }
 
-// Recv starts listening to the ReadWriter and passes *Message to a channel
-func (c *Connection) Recv(messageOut chan<- *Message) {
+// Multipart Recv
+func (c *Connection) RecvMultipart(messageOut chan<- *Message) {
 	go func() {
 		for {
 			// Actually read out the body and send it over the channel now
@@ -381,6 +381,49 @@ func (c *Connection) Recv(messageOut chan<- *Message) {
 					}
 				default:
 					messageOut <- &Message{Name: command.Name, Body: body, MessageType: ErrorMessage}
+				}
+
+			}
+		}
+	}()
+}
+
+// Recv starts listening to the ReadWriter and passes *Message to a channel
+func (c *Connection) Recv(messageOut chan<- *Message) {
+	go func() {
+		for {
+			// Actually read out the body and send it over the channel now
+			isCommand, body, err := c.read()
+			if err != nil {
+				messageOut <- &Message{Err: err, MessageType: ErrorMessage}
+				return
+			}
+
+			if !isCommand {
+				// Data frame
+				msg_out := make([][]byte, 1)
+				msg_out[0] = body
+				messageOut <- &Message{Body: msg_out, MessageType: UserMessage}
+			} else {
+				command, err := c.parseCommand(body)
+				if err != nil {
+					messageOut <- &Message{Err: err, MessageType: ErrorMessage}
+					return
+				}
+
+				// Check what type of command we got
+				// Certain commands we deal with directly, the rest we send over to the application
+				switch command.Name {
+				case "PING":
+					// When we get a ping, we want to send back a pong, we don't really care about the contents right now
+					if err := c.SendCommand("PONG", nil); err != nil {
+						messageOut <- &Message{Err: err, MessageType: ErrorMessage}
+						return
+					}
+				default:
+					msg_out := make([][]byte, 1)
+					msg_out[0] = body
+					messageOut <- &Message{Name: command.Name, Body: msg_out, MessageType: ErrorMessage}
 				}
 
 			}

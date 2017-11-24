@@ -148,7 +148,7 @@ Connect:
 	}
 
 	d.AddConnection(conn)
-	zmtpConn.Recv(d.RecvChannel())
+	zmtpConn.RecvMultipart(d.RecvChannel())
 	return nil
 }
 

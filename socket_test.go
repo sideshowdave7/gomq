@@ -94,16 +94,16 @@ func TestExternalServer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	msg, err := client.Recv()
+	msg, err := client.RecvMultipart()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if want, got := 0, bytes.Compare([]byte("WORLD"), msg); want != got {
-		t.Errorf("want %v, got %v", want, got)
+	if want, got := 0, bytes.Compare([]byte("WORLD"), msg[0]); want != got {
+		t.Errorf("want %q, got %q", []byte("WORLD"), msg[0])
 	}
 
-	t.Logf("client received: %q", string(msg))
+	t.Logf("client received: %q", string(msg[0]))
 
 	client.Close()
 }
@@ -134,7 +134,88 @@ func TestExternalRouter(t *testing.T) {
 	t.Logf("dealer received: %q", string(msg))
 	// t.Logf("dealer received: %q", string(msg2))
 
+	t.Log("Sending multipart")
+	msg2 := make([][]byte, 2)
+	msg2[0] = []byte("HELLO")
+	msg2[1] = []byte("WORLD")
+	err = dealer.SendMultipart(msg2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rmsg, _ := dealer.RecvMultipart()
+
+	if want, got := 0, bytes.Compare([]byte("WORLD"), rmsg[0]); want != got {
+		t.Errorf("want %q, got %q", []byte("WORLD"), rmsg[0])
+	}
+
+	if want, got := 0, bytes.Compare([]byte("HELLO"), rmsg[1]); want != got {
+		t.Errorf("want %q, got %q", []byte("HELLO"), rmsg[1])
+	}
+
 	dealer.Close()
+}
+
+func TestDealerRouter(t *testing.T) {
+	var addr net.Addr
+	var err error
+	go func() {
+		dealer := NewDealer(zmtp.NewSecurityNull(), "test_dealer")
+		defer dealer.Close()
+		err = dealer.Connect("tcp://127.0.0.1:11123")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := dealer.Recv()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if want, got := 0, bytes.Compare([]byte("HELLO"), msg); want != got {
+			t.Fatalf("want %v, got %v", want, got)
+		}
+
+		t.Logf("dealer received: %q", string(msg))
+
+		err = dealer.Send([]byte("GOODBYE"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dealer.Close()
+	}()
+
+	router := NewRouter(zmtp.NewSecurityNull(), "router")
+	defer router.Close()
+
+	addr, err = router.Bind("tcp://127.0.0.1:11123")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want, got := "127.0.0.1:11123", addr.String(); want != got {
+		t.Fatalf("want %q, got %q", want, got)
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router.Send([]byte("HELLO"))
+
+	msg, err := router.Recv()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want, got := 0, bytes.Compare([]byte("GOODBYE"), msg); want != got {
+		t.Fatalf("want %v, got %v (%v)", want, got, msg)
+	}
+
+	t.Logf("router received: %q", string(msg))
+
+	router.Close()
 }
 
 func TestPushPull(t *testing.T) {
