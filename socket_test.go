@@ -58,7 +58,7 @@ func TestNewClient(t *testing.T) {
 	msg, _ := server.Recv()
 
 	if want, got := 0, bytes.Compare([]byte("HELLO"), msg); want != got {
-		t.Fatalf("want %v, got %v", want, got)
+		t.Fatalf("want %q, got %q", []byte("HELLO"), msg)
 	}
 
 	t.Logf("server received: %q", string(msg))
@@ -71,7 +71,7 @@ func TestNewClient(t *testing.T) {
 	}
 
 	if want, got := 0, bytes.Compare([]byte("GOODBYE"), msg); want != got {
-		t.Errorf("want %v, got %v", want, got)
+		t.Fatalf("want %q, got %q", []byte("GOODBYE"), msg)
 	}
 
 	t.Logf("server received: %q", string(msg))
@@ -94,7 +94,10 @@ func TestExternalServer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	msg, _ := client.Recv()
+	msg, err := client.Recv()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if want, got := 0, bytes.Compare([]byte("WORLD"), msg); want != got {
 		t.Errorf("want %v, got %v", want, got)

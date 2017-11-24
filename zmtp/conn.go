@@ -380,9 +380,7 @@ func (c *Connection) Recv(messageOut chan<- *Message) {
 						return
 					}
 				default:
-					command_body := make([][]byte, 1)
-					command_body[0] = command.Body
-					messageOut <- &Message{Name: command.Name, Body: command_body, MessageType: ErrorMessage}
+					messageOut <- &Message{Name: command.Name, Body: body, MessageType: ErrorMessage}
 				}
 
 			}
@@ -470,7 +468,7 @@ func (c *Connection) readMultipart() (bool, [][]byte, error) {
 	hasMore := true
 	isCommand := false
 
-	parts := make([][]byte, 1)
+	parts := make([][]byte, 0)
 
 	for hasMore {
 

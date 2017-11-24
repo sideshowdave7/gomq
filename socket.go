@@ -113,8 +113,14 @@ func (s *Socket) Close() {
 func (s *Socket) Recv() ([]byte, error) {
 	msg := <-s.recvChannel
 	if msg.MessageType == zmtp.CommandMessage {
+
 	}
-	return msg.Body[0], msg.Err
+
+	if len(msg.Body) > 0 {
+		return msg.Body[0], msg.Err
+	} else {
+		return nil, msg.Err
+	}
 }
 
 func (s *Socket) RecvMultipart() ([][]byte, error) {
