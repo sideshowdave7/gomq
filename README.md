@@ -32,12 +32,12 @@ Note: Each of these libraries need you to run `sudo ldconfig` if you are on Linu
 *Install libsodium*
 ```
 wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz
-wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz.sig
+wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.15.tar.gz.sig
 wget https://download.libsodium.org/jedi.gpg.asc
 gpg --import jedi.gpg.asc
-gpg --verify libsodium-1.0.8.tar.gz.sig libsodium-1.0.8.tar.gz
-tar zxvf libsodium-1.0.8.tar.gz
-cd libsodium-1.0.8
+gpg --verify libsodium-1.0.15.tar.gz.sig libsodium-1.0.15.tar.gz
+tar zxvf libsodium-1.0.15.tar.gz
+cd libsodium-1.0.15
 ./configure; make check
 sudo make install
 sudo ldconfig
@@ -63,7 +63,7 @@ On OSX, verify that, the output of `ls -al /usr/local/lib/libzmq.dylib` is:
 *Building czmq from master*
 ```
 git clone git@github.com:zeromq/czmq.git
-cd libzmq
+cd czmq
 ./autogen.sh
 ./configure
 make check
