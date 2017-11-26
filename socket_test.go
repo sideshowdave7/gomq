@@ -119,31 +119,30 @@ func TestExternalRouter(t *testing.T) {
 	}
 
 	t.Log("Sending HELLO")
-	err = dealer.Send([]byte("HELLO"))
+	err = dealer.SendMultipartString([]string{"", "HELLO"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	msg, _ := dealer.Recv()
-	// msg2, _ := dealer.Recv()
 
 	if want, got := 0, bytes.Compare([]byte("WORLD"), msg); want != got {
 		t.Errorf("want %v, got %v", want, got)
 	}
 
 	t.Logf("dealer received: %q", string(msg))
-	// t.Logf("dealer received: %q", string(msg2))
 
 	t.Log("Sending multipart")
-	msg2 := make([][]byte, 2)
-	msg2[0] = []byte("HELLO")
-	msg2[1] = []byte("WORLD")
-	err = dealer.SendMultipart(msg2)
+	err = dealer.SendMultipartString([]string{"", "HELLO", "WORLD"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rmsg, _ := dealer.RecvMultipart()
+
+	for i := range rmsg {
+		t.Logf("dealer received: %q", string(rmsg[i]))
+	}
 
 	if want, got := 0, bytes.Compare([]byte("WORLD"), rmsg[0]); want != got {
 		t.Errorf("want %q, got %q", []byte("WORLD"), rmsg[0])
@@ -159,6 +158,7 @@ func TestExternalRouter(t *testing.T) {
 func TestDealerRouter(t *testing.T) {
 	var addr net.Addr
 	var err error
+
 	go func() {
 		dealer := NewDealer(zmtp.NewSecurityNull(), "test_dealer")
 		defer dealer.Close()
@@ -167,18 +167,18 @@ func TestDealerRouter(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		msg, err := dealer.Recv()
+		msg, err := dealer.RecvMultipart()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if want, got := 0, bytes.Compare([]byte("HELLO"), msg); want != got {
+		if want, got := 0, bytes.Compare([]byte("HELLO"), msg[1]); want != got {
 			t.Fatalf("want %v, got %v", want, got)
 		}
 
-		t.Logf("dealer received: %q", string(msg))
+		t.Logf("dealer received: %q", string(msg[1]))
 
-		err = dealer.Send([]byte("GOODBYE"))
+		err = dealer.SendMultipartString([]string{"", "GOODBYE"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -202,18 +202,18 @@ func TestDealerRouter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router.Send([]byte("HELLO"))
+	router.SendMultipartString([]string{"test_dealer", "", "WORLD"})
 
-	msg, err := router.Recv()
+	msg, err := router.RecvMultipart()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if want, got := 0, bytes.Compare([]byte("GOODBYE"), msg); want != got {
-		t.Fatalf("want %v, got %v (%v)", want, got, msg)
+	if want, got := 0, bytes.Compare([]byte("GOODBYE"), msg[2]); want != got {
+		t.Fatalf("want %v, got %v (%v)", want, got, msg[2])
 	}
 
-	t.Logf("router received: %q", string(msg))
+	t.Logf("router received: %q", string(msg[2]))
 
 	router.Close()
 }

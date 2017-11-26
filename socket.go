@@ -134,6 +134,20 @@ func (s *Socket) Send(b []byte) error {
 	return s.conns[s.ids[0]].zmtp.SendFrame(b)
 }
 
+func (s *Socket) SendMultipartString(d []string) error {
+	b := make([][]byte, len(d))
+	for i, v := range d {
+		b[i] = []byte(v)
+	}
+	return s.SendMultipart(b)
+}
+
 func (s *Socket) SendMultipart(b [][]byte) error {
+	if s.SocketType() == zmtp.RouterSocketType {
+		socket_id := string(b[0])
+		b = b[1:]
+		return s.conns[socket_id].zmtp.SendMultipart(b)
+	}
+
 	return s.conns[s.ids[0]].zmtp.SendMultipart(b)
 }

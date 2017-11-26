@@ -25,6 +25,7 @@ type ZeroMQSocket interface {
 	Recv() ([]byte, error)
 	Send([]byte) error
 	SendMultipart([][]byte) error
+	SendMultipartString([]string) error
 	RetryInterval() time.Duration
 	SocketType() zmtp.SocketType
 	SocketIdentity() zmtp.SocketIdentity
