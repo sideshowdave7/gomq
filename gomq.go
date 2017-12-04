@@ -187,6 +187,6 @@ func BindRouter(r Router, endpoint string) (net.Addr, error) {
 	}
 
 	r.AddConnection(conn)
-	zmtpConn.Recv(r.RecvChannel())
+	zmtpConn.RecvMultipart(r.RecvChannel())
 	return netConn.LocalAddr(), nil
 }

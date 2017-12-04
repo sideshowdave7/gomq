@@ -167,6 +167,11 @@ func TestDealerRouter(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		err = dealer.SendMultipartString([]string{"", "GOODBYE"})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		msg, err := dealer.RecvMultipart()
 		if err != nil {
 			t.Fatal(err)
@@ -177,12 +182,6 @@ func TestDealerRouter(t *testing.T) {
 		}
 
 		t.Logf("dealer received: %q", string(msg[1]))
-
-		err = dealer.SendMultipartString([]string{"", "GOODBYE"})
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		dealer.Close()
 	}()
 
@@ -202,8 +201,6 @@ func TestDealerRouter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router.SendMultipartString([]string{"test_dealer", "", "WORLD"})
-
 	msg, err := router.RecvMultipart()
 	if err != nil {
 		t.Fatal(err)
@@ -214,6 +211,8 @@ func TestDealerRouter(t *testing.T) {
 	}
 
 	t.Logf("router received: %q", string(msg[2]))
+
+	router.SendMultipartString([]string{string(msg[0]), "", "WORLD"})
 
 	router.Close()
 }

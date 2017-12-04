@@ -1,10 +1,10 @@
 package gomq
 
 import (
+	"fmt"
+	"github.com/zeromq/gomq/zmtp"
 	"sync"
 	"time"
-
-	"github.com/zeromq/gomq/zmtp"
 )
 
 // Socket is the base GoMQ socket type. It should probably
@@ -145,8 +145,17 @@ func (s *Socket) SendMultipartString(d []string) error {
 func (s *Socket) SendMultipart(b [][]byte) error {
 	if s.SocketType() == zmtp.RouterSocketType {
 		socket_id := string(b[0])
-		b = b[1:]
-		return s.conns[socket_id].zmtp.SendMultipart(b)
+
+		if len(b) > 1 {
+			b = b[1:]
+			if val, ok := s.conns[socket_id]; ok {
+				return val.zmtp.SendMultipart(b)
+			} else {
+				return fmt.Errorf("Specified router not found")
+			}
+		} else {
+			return fmt.Errorf("Invalid mulitpart data for RouterSocketType")
+		}
 	}
 
 	return s.conns[s.ids[0]].zmtp.SendMultipart(b)
