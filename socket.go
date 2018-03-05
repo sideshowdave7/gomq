@@ -52,6 +52,14 @@ func (s *Socket) AddConnection(conn *Connection) {
 	s.lock.Unlock()
 }
 
+func (s *Socket) AddConnectionWithUUID(conn *Connection, uuid string) {
+	s.lock.Lock()
+
+	s.conns[uuid] = conn
+	s.ids = append(s.ids, uuid)
+	s.lock.Unlock()
+}
+
 // RemoveConnection accepts the uuid of a connection
 // and removes that gomq.Connection from the socket
 // if it exists.

@@ -31,6 +31,7 @@ type ZeroMQSocket interface {
 	SocketIdentity() zmtp.SocketIdentity
 	SecurityMechanism() zmtp.SecurityMechanism
 	AddConnection(*Connection)
+	AddConnectionWithUUID(*Connection, string)
 	RemoveConnection(string)
 	RecvChannel() chan *zmtp.Message
 	RecvMultipart() ([][]byte, error)
@@ -176,7 +177,9 @@ func BindRouter(r Router, endpoint string) (net.Addr, error) {
 	}
 
 	zmtpConn := zmtp.NewConnection(netConn)
-	_, err = zmtpConn.Prepare(r.SecurityMechanism(), r.SocketType(), r.SocketIdentity(), true, nil)
+	otherEndApplicationMetadata := make(map[string]string)
+
+	otherEndApplicationMetadata, err = zmtpConn.Prepare(r.SecurityMechanism(), r.SocketType(), r.SocketIdentity(), true, nil)
 	if err != nil {
 		return netConn.LocalAddr(), err
 	}
@@ -186,7 +189,7 @@ func BindRouter(r Router, endpoint string) (net.Addr, error) {
 		zmtp: zmtpConn,
 	}
 
-	r.AddConnection(conn)
+	r.AddConnectionWithUUID(conn, otherEndApplicationMetadata["Identity"])
 	zmtpConn.RecvMultipart(r.RecvChannel())
 	return netConn.LocalAddr(), nil
 }
