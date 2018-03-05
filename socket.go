@@ -156,7 +156,13 @@ func (s *Socket) SendMultipart(b [][]byte) error {
 		} else {
 			return fmt.Errorf("Invalid mulitpart data for RouterSocketType")
 		}
+	} else if s.SocketType() == zmtp.DealerSocketType {
+		d := make([][]byte, len(b)+1)
+		d[0] = []byte(s.identity)
+		for i, v := range b {
+			d[i+1] = v
+		}
+		return s.conns[s.ids[0]].zmtp.SendMultipart(d)
 	}
-
-	return s.conns[s.ids[0]].zmtp.SendMultipart(b)
+	return nil
 }
